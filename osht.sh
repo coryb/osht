@@ -97,7 +97,8 @@ EOF
 _DEPTH=2
 function _source {
     local parts=($(caller $_DEPTH))
-    echo ${parts[2]}:${parts[0]}
+    local fn=$(basename ${parts[2]})
+    echo ${fn%.*}
 }
 
 function _get_line {
