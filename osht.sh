@@ -1,19 +1,18 @@
-_CURRENT_TEST=0
-_PLANNED_TESTS=
-JUNIT_OUTPUT=tests.xml
-JUNIT=
-VERBOSE=
-_START=
-_LAPSE=
+: ${_CURRENT_TEST=0}
+: ${_PLANNED_TESTS=}
+: ${JUNIT_OUTPUT="$0-tests.xml"}
+: ${JUNIT=}
+: ${VERBOSE=}
+: ${_START=}
+: ${_LAPSE=}
+: ${_CURRENT_TEST_FILE=$(mktemp)}
+: ${_FAILED_FILE=$(mktemp)}
+: ${STDOUT=$(mktemp)}
+: ${STDERR=$(mktemp)}
+: ${STDIO=$(mktemp)}
+: ${_JUNIT=$(mktemp)}
 
 declare -a _ARGS
-
-_CURRENT_TEST_FILE=$(mktemp)
-_FAILED_FILE=$(mktemp)
-STDOUT=$(mktemp)
-STDERR=$(mktemp)
-STDIO=$(mktemp)
-_JUNIT=$(mktemp)
 
 function _usage {
     [ -n "${1:-}" ] && echo -e "Error: $1\n" >&2
@@ -213,13 +212,23 @@ function PLAN {
 function IS {
     _args "$@"
     _increment_test
-    eval [[ "$1" $2 "$3" ]] && _ok || _nok
+    case "$2" in
+        =~) [[ $1 =~ $3 ]] && _ok || _nok;;
+        !=) [[ $1 != $3 ]] && _ok || _nok;;
+        =|==) [[ $1 == $3 ]] && _ok || _nok;;
+        *) [ "$1" $2 "$3" ] && _ok || _nok;;
+    esac
 }
 
 function ISNT {
     _args "$@"
     _increment_test
-    eval [[ ! "$1" $2 "$3" ]] && _ok || _nok
+    case "$2" in
+        =~) [[ ! $1 =~ $3 ]] && _ok || _nok;;
+        !=) [[ $1 == $3 ]] && _ok || _nok;;
+        =|==) [[ $1 != $3 ]] && _ok || _nok;;
+        *) [ ! "$1" $2 "$3" ] && _ok || _nok;;
+    esac
 }
 
 function OK {
