@@ -14,13 +14,13 @@ Start a test with:
 . osht.sh
 ```
 
-Or import osht remotely:
+Or import `osht` remotely:
 ```bash
 #!/bin/bash
 eval "$(curl -q -s https://raw.githubusercontent.com/coryb/osht/master/osht.sh)"
 ```
 
-Next is it recommended to set a test plan so osht can know how many tests are expected to run (to be able to detect early crash).
+Next is it recommended to set a test plan so `osht` can know how many tests are expected to run (to be able to detect early crash).
 
 ```bash
 PLAN 31
