@@ -41,6 +41,7 @@ function _cleanup {
     rv=$?
     if [ -z "$_PLANNED_TESTS" ]; then
         _PLANNED_TESTS=$_CURRENT_TEST
+        echo "1..$_PLANNED_TESTS"
     fi
     if [[ $_PLANNED_TESTS != $_CURRENT_TEST ]]; then
         echo "$_PLANNED_TESTS tests expected but $_CURRENT_TEST ran" >&2
@@ -80,7 +81,7 @@ function _add_junit {
     local stderr=$(cat $STDERR)
     local _DEPTH=$(($_DEPTH+1))
     cat <<EOF >> $_JUNIT
-  <testcase classname="$(_source)" name="$(_get_line)" time="$_LAPSE" timestamp="$(_timestamp)">
+  <testcase classname="$(_source)" name="$(_get_line | sed 's/\"/\\\"/g')" time="$_LAPSE" timestamp="$(_timestamp)">
     $failure<system-err><![CDATA[$stderr]]></system-err>
     <system-out><![CDATA[$stdout]]></system-out>
   </testcase>
