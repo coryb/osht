@@ -81,7 +81,7 @@ function _add_junit {
     local stderr=$(cat $STDERR)
     local _DEPTH=$(($_DEPTH+1))
     cat <<EOF >> $_JUNIT
-  <testcase classname="$(_source)" name="$(_get_line | sed 's/\"/\\\"/g')" time="$_LAPSE" timestamp="$(_timestamp)">
+  <testcase classname="$(_source)" name="$(_get_line | sed 's/\"/\&quot;/g')" time="$_LAPSE" timestamp="$(_timestamp)">
     $failure<system-err><![CDATA[$stderr]]></system-err>
     <system-out><![CDATA[$stdout]]></system-out>
   </testcase>

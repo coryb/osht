@@ -43,4 +43,4 @@ GREP "No such file"
 EGREP "No such file"
 NOGREP .
 
-RUNS sleep 2
+RUNS sleep 1
