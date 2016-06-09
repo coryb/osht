@@ -98,7 +98,7 @@ _DEPTH=2
 function _source {
     local parts=($(caller $_DEPTH))
     local fn=$(basename ${parts[2]})
-    echo .${fn%.*}
+    echo ./${fn%.*}
 }
 
 function _get_line {
