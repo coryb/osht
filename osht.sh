@@ -63,7 +63,7 @@ function _xmlencode {
 }
 
 function _strip_terminal_escape {
-    sed -e 's/'$'\x1b''\[[^@-~]*[@-~]//g'
+    sed -e $'s/\x1B\[[0-9]*;[0-9]*[m|K]//g' -e $'s/\x1B\[[0-9]*[m|K]//g'
 }
 
 function _timestamp {
