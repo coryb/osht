@@ -293,3 +293,10 @@ function NOGREP {
     _increment_test
     ! grep -q "$@" $STDOUT  && _ok || _nok
 }
+
+function DIFF {
+    _args "$@"
+    _increment_test
+    diff -u $STDIO - | sed 's/^/# /g'
+    [[ ${PIPESTATUS[0]} == 0 ]] && _ok || _nok
+}

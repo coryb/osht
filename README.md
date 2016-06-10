@@ -23,7 +23,7 @@ eval "$(curl -q -s https://raw.githubusercontent.com/coryb/osht/master/osht.sh)"
 Next is it recommended to set a test plan so `osht` can know how many tests are expected to run (to be able to detect early crash).
 
 ```bash
-PLAN 31
+PLAN 32
 ```
 
 ## Writing Tests
@@ -92,6 +92,13 @@ GREP ^baz
 OGREP bar
 OGREP ^foo
 OGREP ^baz
+
+# diff output
+DIFF <<EOF
+foo
+bar
+baz
+EOF
 ```
 
 ## Running Tests
@@ -100,7 +107,7 @@ OGREP ^baz
 
 ```bash
 ./t/example.t
-1..31
+1..32
 ok 1 - IS $(whoami) != root
 ok 2 - IS "$var" =~ foo
 ok 3 - IS "$var" =~ bar$
@@ -132,6 +139,7 @@ ok 28 - GREP ^baz
 ok 29 - OGREP bar
 ok 30 - OGREP ^foo
 ok 31 - OGREP ^baz
+ok 32 - DIFF <<EOF
 ```
 
 ### Using prove
@@ -139,14 +147,14 @@ ok 31 - OGREP ^baz
 $ prove
 t/example.t .. ok
 All tests successful.
-Files=1, Tests=31,  0 wallclock secs ( 0.03 usr  0.01 sys +  0.14 cusr  0.32 csys =  0.50 CPU)
+Files=1, Tests=32,  0 wallclock secs ( 0.03 usr  0.01 sys +  0.14 cusr  0.32 csys =  0.50 CPU)
 Result: PASS
 ```
 
 ### Junit Output
 ```bash
 ./t/example.t -j
-1..31
+1..32
 ...
 
 $ ls -l t/example.t-tests.xml
@@ -163,7 +171,7 @@ when run under `prove`
 $ JUNIT=1 prove
 t/example.t .. ok
 All tests successful.
-Files=1, Tests=31,  1 wallclock secs ( 0.03 usr  0.01 sys +  0.37 cusr  0.87 csys =  1.28 CPU)
+Files=1, Tests=32,  1 wallclock secs ( 0.03 usr  0.01 sys +  0.37 cusr  0.87 csys =  1.28 CPU)
 Result: PASS
 
 $ ls -l t/example.t-tests.xml

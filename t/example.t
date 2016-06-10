@@ -2,7 +2,7 @@
 set -eu
 . osht.sh
 
-PLAN 31
+PLAN 32
 
 # simple command output
 IS $(whoami) != root
@@ -69,3 +69,10 @@ GREP ^baz
 OGREP bar
 OGREP ^foo
 OGREP ^baz
+
+# diff stdout
+DIFF <<EOF
+foo
+bar
+baz
+EOF
