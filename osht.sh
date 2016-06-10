@@ -11,6 +11,7 @@
 : ${STDERR=$(mktemp)}
 : ${STDIO=$(mktemp)}
 : ${_JUNIT=$(mktemp)}
+: ${_INITPATH=$(pwd)}
 
 declare -a _ARGS
 
@@ -102,7 +103,7 @@ function _source {
 
 function _get_line {
     local parts=($(caller $_DEPTH))
-    sed "${parts[0]}q;d" ${parts[2]}
+    (cd $_INITPATH && sed "${parts[0]}q;d" ${parts[2]})
 }
 
 function _increment_test {
