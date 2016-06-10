@@ -1,6 +1,5 @@
 : ${_CURRENT_TEST=0}
 : ${_PLANNED_TESTS=}
-: ${JUNIT_OUTPUT="$0-tests.xml"}
 : ${JUNIT=}
 : ${VERBOSE=}
 : ${_START=}
@@ -12,6 +11,7 @@
 : ${STDIO=$(mktemp)}
 : ${_JUNIT=$(mktemp)}
 : ${_INITPATH=$(pwd)}
+: ${JUNIT_OUTPUT="$_INITPATH/$(basename $0)-tests.xml"}
 
 declare -a _ARGS
 
@@ -298,5 +298,19 @@ function DIFF {
     _args "$@"
     _increment_test
     diff -u - $STDIO | sed 's/^/# /g'
+    [[ ${PIPESTATUS[0]} == 0 ]] && _ok || _nok
+}
+
+function ODIFF {
+    _args "$@"
+    _increment_test
+    diff -u - $STDOUT | sed 's/^/# /g'
+    [[ ${PIPESTATUS[0]} == 0 ]] && _ok || _nok
+}
+
+function EDIFF {
+    _args "$@"
+    _increment_test
+    diff -u - $STDERR | sed 's/^/# /g'
     [[ ${PIPESTATUS[0]} == 0 ]] && _ok || _nok
 }
