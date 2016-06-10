@@ -62,6 +62,10 @@ function _xmlencode {
     sed -e 's/\&/\&amp;/g' -e 's/\"/\&quot;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' 
 }
 
+function _strip_terminal_escape {
+    sed -e 's/'$'\x1b''\[[^@-~]*[@-~]//g'
+}
+
 function _timestamp {
     date "+%Y-%m-%dT%H:%M:%S"
 }
@@ -81,8 +85,8 @@ function _add_junit {
     if [[ $# != 0 ]]; then
         failure="<failure message=\"test failed\"><![CDATA[$(_qq "${_ARGS[@]}")]]></failure>\n    "
     fi
-    local stdout=$(cat $STDOUT)
-    local stderr=$(cat $STDERR)
+    local stdout=$(cat $STDOUT | _strip_terminal_escape)
+    local stderr=$(cat $STDERR | _strip_terminal_escape)
     local _DEPTH=$(($_DEPTH+1))
     cat <<EOF >> $_JUNIT
   <testcase classname="$(_source)" name="$(printf "%03i" $_CURRENT_TEST) - $(_get_line | _xmlencode)" time="$_LAPSE" timestamp="$(_timestamp)">
@@ -299,21 +303,21 @@ function NOGREP {
 }
 
 function DIFF {
-    _args "$@"
+    _args diff -u - $STDIO
     _increment_test
     diff -u - $STDIO | sed 's/^/# /g'
     [[ ${PIPESTATUS[0]} == 0 ]] && _ok || _nok
 }
 
 function ODIFF {
-    _args "$@"
+    _args diff -u - $STDOUT
     _increment_test
     diff -u - $STDOUT | sed 's/^/# /g'
     [[ ${PIPESTATUS[0]} == 0 ]] && _ok || _nok
 }
 
 function EDIFF {
-    _args "$@"
+    _args diff -u - $STDERR
     _increment_test
     diff -u - $STDERR | sed 's/^/# /g'
     [[ ${PIPESTATUS[0]} == 0 ]] && _ok || _nok
