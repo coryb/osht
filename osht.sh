@@ -11,7 +11,7 @@
 : ${STDIO=$(mktemp)}
 : ${_JUNIT=$(mktemp)}
 : ${_INITPATH=$(pwd)}
-: ${JUNIT_OUTPUT="$_INITPATH/$(basename $0)-tests.xml"}
+: ${JUNIT_OUTPUT="$(cd "$(dirname "$0")"; pwd)/$(basename "$0")-tests.xml"}
 
 declare -a _ARGS
 
