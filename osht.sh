@@ -59,7 +59,7 @@ function _cleanup {
 trap _cleanup INT TERM EXIT
 
 function _xmlencode {
-    sed -e 's/\&/\&amp;/g' -e 's/\"/\&quot;/g' -e 's/\</\&lt;/g' -e 's/\>/\&gt;/g' 
+    sed -e 's/\&/\&amp;/g' -e 's/\"/\&quot;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' 
 }
 
 function _timestamp {
