@@ -213,7 +213,6 @@ function _debugmsg {
             echo "EOM";;
         DIFF|ODIFF|EDIFF)
             cat $_DIFFOUT;;
-        ;;
    esac
 }
 
