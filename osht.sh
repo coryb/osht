@@ -93,12 +93,12 @@ function _add_junit {
         return
     fi
     failure=
-    local _DEPTH=$(($_DEPTH+1))
     if [[ $# != 0 ]]; then
         failure="<failure message=\"test failed\"><![CDATA[$(_debugmsg | _strip_terminal_escape)]]></failure>\n    "
     fi
     local stdout=$(cat $STDOUT | _strip_terminal_escape)
     local stderr=$(cat $STDERR | _strip_terminal_escape)
+    local _DEPTH=$(($_DEPTH+1))
     cat <<EOF >> $_JUNIT
   <testcase classname="$(_source)" name="$(printf "%03i" $_CURRENT_TEST) - $(_get_line | _xmlencode)" time="$_LAPSE" timestamp="$(_timestamp)">
     $failure<system-err><![CDATA[$stderr]]></system-err>
