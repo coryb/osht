@@ -162,7 +162,7 @@ function _nok {
     _increment_failed
     echo "not ok $_CURRENT_TEST - $(_get_line)"
     _add_junit "${_ARGS[@]}"
-    [[ -n $ABORT ]] && exit 1
+    [ -n "$ABORT" ] && exit 1
 }
 
 function _run {
