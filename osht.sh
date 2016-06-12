@@ -10,6 +10,7 @@
 : ${STDERR=$(mktemp)}
 : ${STDIO=$(mktemp)}
 : ${_JUNIT=$(mktemp)}
+: ${_DIFFOUT=$(mktemp)}
 : ${_INITPATH=$(pwd)}
 : ${JUNIT_OUTPUT="$(cd "$(dirname "$0")"; pwd)/$(basename "$0")-tests.xml"}
 : ${ABORT=}
@@ -61,7 +62,7 @@ function _cleanup {
         cat $_JUNIT >> $JUNIT_OUTPUT
         _end_junit >> $JUNIT_OUTPUT
     fi
-    rm -f $STDOUT $STDERR $STDIO $_CURRENT_TEST_FILE $_JUNIT
+    rm -f $STDOUT $STDERR $STDIO $_CURRENT_TEST_FILE $_JUNIT $_FAILED_FILE $_DIFFOUT
     exit $rv
 }
 
@@ -210,6 +211,9 @@ function _debugmsg {
             echo "STDIO <<EOM"
             cat $STDIO
             echo "EOM";;
+        DIFF|ODIFF|EDIFF)
+            cat $_DIFFOUT;;
+        ;;
    esac
 }
 
@@ -317,20 +321,20 @@ function NOGREP {
 function DIFF {
     _args diff -u - $STDIO
     _increment_test
-    diff -u - $STDIO | sed 's/^/# /g'
+    diff -u - $STDIO | tee $_DIFFOUT | sed 's/^/# /g'
     [[ ${PIPESTATUS[0]} == 0 ]] && _ok || _nok
 }
 
 function ODIFF {
     _args diff -u - $STDOUT
     _increment_test
-    diff -u - $STDOUT | sed 's/^/# /g'
+    diff -u - $STDOUT | tee $_DIFFOUT | sed 's/^/# /g'
     [[ ${PIPESTATUS[0]} == 0 ]] && _ok || _nok
 }
 
 function EDIFF {
     _args diff -u - $STDERR
     _increment_test
-    diff -u - $STDERR | sed 's/^/# /g'
+    diff -u - $STDERR | tee $_DIFFOUT | sed 's/^/# /g'
     [[ ${PIPESTATUS[0]} == 0 ]] && _ok || _nok
 }
