@@ -12,13 +12,20 @@
 : ${_JUNIT=$(mktemp)}
 : ${_INITPATH=$(pwd)}
 : ${JUNIT_OUTPUT="$(cd "$(dirname "$0")"; pwd)/$(basename "$0")-tests.xml"}
+: ${ABORT=}
 
 declare -a _ARGS
 
 function _usage {
     [ -n "${1:-}" ] && echo -e "Error: $1\n" >&2
     cat <<EOF
-Usage: $(basename $0) [--output <junit-output-file>] [--junit] [--verbose]
+Usage: $(basename $0) [--output <junit-output-file>] [--junit] [--verbose] [--abort]
+Options:
+-a|--abort         On the first error abort the test execution
+-h|--help          This help message
+-j|--junit         Enable JUnit xml writing
+-o|--output=<file> Location to write JUnit xml file [default: $JUNIT_OUTPUT]
+-v|--verbose       Print extra output for debugging tests
 EOF
     exit 0
 }
@@ -27,8 +34,10 @@ EOF
 while true; do
     [[ $# == 0 ]] && break
     case $1 in
-        -o | --output) JUNIT_OUTPUT=$2; shift 2 ;;
+        -a | --abort) ABORT=1; shift;;
+        -h | --help) usage;;
         -j | --junit)  JUNIT=1; shift ;;
+        -o | --output) JUNIT_OUTPUT=$2; shift 2 ;;
         -v | --verbose) VERBOSE=1; shift ;;
         -- ) shift; break ;;
         -* ) (_usage "Invalid argument $1") >&2 && exit 1;;
@@ -153,6 +162,7 @@ function _nok {
     _increment_failed
     echo "not ok $_CURRENT_TEST - $(_get_line)"
     _add_junit "${_ARGS[@]}"
+    [[ -n $ABORT ]] && exit 1
 }
 
 function _run {
