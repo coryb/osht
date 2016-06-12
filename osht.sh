@@ -14,6 +14,7 @@
 : ${_INITPATH=$(pwd)}
 : ${JUNIT_OUTPUT="$(cd "$(dirname "$0")"; pwd)/$(basename "$0")-tests.xml"}
 : ${ABORT=}
+: ${_DEPTH=2}
 
 declare -a _ARGS
 
@@ -92,12 +93,12 @@ function _add_junit {
         return
     fi
     failure=
+    local _DEPTH=$(($_DEPTH+1))
     if [[ $# != 0 ]]; then
-        failure="<failure message=\"test failed\"><![CDATA[$(_qq "${_ARGS[@]}")]]></failure>\n    "
+        failure="<failure message=\"test failed\"><![CDATA[$(_debugmsg | _strip_terminal_escape)]]></failure>\n    "
     fi
     local stdout=$(cat $STDOUT | _strip_terminal_escape)
     local stderr=$(cat $STDERR | _strip_terminal_escape)
-    local _DEPTH=$(($_DEPTH+1))
     cat <<EOF >> $_JUNIT
   <testcase classname="$(_source)" name="$(printf "%03i" $_CURRENT_TEST) - $(_get_line | _xmlencode)" time="$_LAPSE" timestamp="$(_timestamp)">
     $failure<system-err><![CDATA[$stderr]]></system-err>
@@ -112,7 +113,6 @@ function _end_junit {
 EOF
 }
 
-_DEPTH=2
 function _source {
     local parts=($(caller $_DEPTH))
     local fn=$(basename ${parts[2]})
@@ -195,7 +195,7 @@ function _debug {
 }
 
 function _debugmsg {
-    parts=($(caller 2))
+    parts=($(caller $_DEPTH))
     case ${parts[1]} in
         IS)
             _qq "${_ARGS[@]}";;
