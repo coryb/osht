@@ -54,16 +54,16 @@ function _cleanup {
         _PLANNED_TESTS=$_CURRENT_TEST
         echo "1..$_PLANNED_TESTS"
     fi
-    if [[ $_PLANNED_TESTS != $_CURRENT_TEST ]]; then
-        echo "$_PLANNED_TESTS tests expected but $_CURRENT_TEST ran" >&2
-        exit 1
-    fi
     if [[ -n $JUNIT ]]; then
         _init_junit > $JUNIT_OUTPUT
         cat $_JUNIT >> $JUNIT_OUTPUT
         _end_junit >> $JUNIT_OUTPUT
     fi
     rm -f $STDOUT $STDERR $STDIO $_CURRENT_TEST_FILE $_JUNIT $_FAILED_FILE $_DIFFOUT
+    if [[ $_PLANNED_TESTS != $_CURRENT_TEST ]]; then
+        echo "$_PLANNED_TESTS tests expected but $_CURRENT_TEST ran" >&2
+        exit 1
+    fi
     exit $rv
 }
 
