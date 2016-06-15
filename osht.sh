@@ -212,18 +212,21 @@ function _debug {
 }
 
 function _debugmsg {
-    parts=($(caller $_DEPTH))
-    case ${parts[1]} in
+    local args=("${_ARGS[@]}")
+    if [[ ${args[0]} == "TODO" ]]; then
+        args=${args[@]:1}
+    fi
+    case ${args[0]} in
         IS)
-            _qq "${_ARGS[@]}";;
+            _qq "${args[@]}";;
         ISNT)
-            _qq \! "${_ARGS[@]}";;
+            _qq \! "${args[@]}";;
         OK)
-            _qq test "${_ARGS[@]}";;
+            _qq test "${args[@]}";;
         NOK)
-            _qq test \! "${_ARGS[@]}";;
+            _qq test \! "${args[@]}";;
         NRUNS|RUNS)
-            echo "RUNNING: $(_qq ${_ARGS[@]})"
+            echo "RUNNING: $(_qq ${args[@]})"
             echo "STATUS: $STATUS"
             echo "STDIO <<EOM"
             cat $STDIO
