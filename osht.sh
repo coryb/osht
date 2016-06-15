@@ -15,6 +15,7 @@
 : ${JUNIT_OUTPUT="$(cd "$(dirname "$0")"; pwd)/$(basename "$0")-tests.xml"}
 : ${ABORT=}
 : ${_DEPTH=2}
+: ${_TODO=}
 
 declare -a _ARGS
 
@@ -59,11 +60,17 @@ function _cleanup {
         cat $_JUNIT >> $JUNIT_OUTPUT
         _end_junit >> $JUNIT_OUTPUT
     fi
+    local failed=$(_failed)
     rm -f $STDOUT $STDERR $STDIO $_CURRENT_TEST_FILE $_JUNIT $_FAILED_FILE $_DIFFOUT
     if [[ $_PLANNED_TESTS != $_CURRENT_TEST ]]; then
-        echo "$_PLANNED_TESTS tests expected but $_CURRENT_TEST ran" >&2
-        exit 1
+        echo "Looks like you planned $_PLANNED_TESTS tests but ran $_CURRENT_TEST." >&2
+        rv=255
     fi
+    if [[ $failed > 0 ]]; then
+        echo "Looks like you failed $failed test of $_CURRENT_TEST." >&2
+        rv=$failed
+    fi
+          
     exit $rv
 }
 
@@ -132,7 +139,7 @@ function _increment_test {
 }
 
 function _increment_failed {
-    local _FAILED=$(cat $_FAILED_FILE)
+    local _FAILED=$(_failed)
     let _FAILED=_FAILED+1
     echo $_FAILED > $_FAILED_FILE
 }
@@ -153,15 +160,25 @@ function _stop {
 function _ok {
     _stop
     _debug
-    echo "ok $_CURRENT_TEST - $(_get_line)"
+    echo -n "ok $_CURRENT_TEST - $(_get_line)"
+    if [ -n "$_TODO" ]; then
+        echo " # TODO Test Know to fail"
+    else
+        echo
+    fi
     _add_junit
 }
 
 function _nok {
     _stop
     _debug
-    _increment_failed
-    echo "not ok $_CURRENT_TEST - $(_get_line)"
+    echo -n "not ok $_CURRENT_TEST - $(_get_line)"
+    if [ -n "$_TODO" ]; then
+        echo " # TODO Test Know to fail"
+    else
+        _increment_failed
+        echo
+    fi
     _add_junit "${_ARGS[@]}"
     if [ -n "$ABORT" ]; then
         exit 1
@@ -336,4 +353,10 @@ function EDIFF {
     _increment_test
     diff -u - $STDERR | tee $_DIFFOUT | sed 's/^/# /g'
     [[ ${PIPESTATUS[0]} == 0 ]] && _ok || _nok
+}
+
+function TODO {
+    local _TODO=1
+    local _DEPTH=$(($_DEPTH+1))
+    "$@"
 }

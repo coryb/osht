@@ -41,8 +41,8 @@ IS "$var" != "foo bar"
 IS "$var" =~ ^foo
 
 # work with numbers
-IS 10 > 5
-IS 10 >= 10
+IS 10 -gt 5
+IS 10 -ge 10
 
 # expected negations
 ISNT "$var" == foo
@@ -101,6 +101,21 @@ baz
 EOF
 ```
 
+### TODO Tests
+
+```
+# you can mark known failures as TODO tests
+# where you aspire to fix these and document
+# the intended use case
+TODO IS "$var" == foo
+TODO ISNT "$var" != foo
+TODO IS $((1 + 1)) = 3
+TODO OK -z "$nonempty"
+TODO OK -w /etc/passwd
+TODO RUNS false
+```
+
+
 ## Running Tests
 
 ### TAP Output
@@ -140,6 +155,12 @@ ok 29 - OGREP bar
 ok 30 - OGREP ^foo
 ok 31 - OGREP ^baz
 ok 32 - DIFF <<EOF
+not ok 33 - TODO IS "$var" == foo # TODO Test Know to fail
+not ok 34 - TODO ISNT "$var" != foo # TODO Test Know to fail
+not ok 35 - TODO IS $((1 + 1)) = 3 # TODO Test Know to fail
+not ok 36 - TODO OK -z "$nonempty" # TODO Test Know to fail
+not ok 37 - TODO OK -w /etc/passwd # TODO Test Know to fail
+not ok 38 - TODO RUNS false # TODO Test Know to fail
 ```
 
 ### Using prove
@@ -147,14 +168,14 @@ ok 32 - DIFF <<EOF
 $ prove
 t/example.t .. ok
 All tests successful.
-Files=1, Tests=32,  0 wallclock secs ( 0.03 usr  0.01 sys +  0.14 cusr  0.32 csys =  0.50 CPU)
+Files=1, Tests=38,  0 wallclock secs ( 0.03 usr  0.01 sys +  0.14 cusr  0.32 csys =  0.50 CPU)
 Result: PASS
 ```
 
 ### Junit Output
 ```bash
 ./t/example.t -j
-1..32
+1..38
 ...
 
 $ ls -l t/example.t-tests.xml
@@ -171,7 +192,7 @@ when run under `prove`
 $ JUNIT=1 prove
 t/example.t .. ok
 All tests successful.
-Files=1, Tests=32,  1 wallclock secs ( 0.03 usr  0.01 sys +  0.37 cusr  0.87 csys =  1.28 CPU)
+Files=1, Tests=38,  1 wallclock secs ( 0.03 usr  0.01 sys +  0.37 cusr  0.87 csys =  1.28 CPU)
 Result: PASS
 
 $ ls -l t/example.t-tests.xml

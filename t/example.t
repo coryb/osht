@@ -2,7 +2,7 @@
 set -eu
 . osht.sh
 
-PLAN 32
+PLAN 38
 
 # simple command output
 IS $(whoami) != root
@@ -76,3 +76,13 @@ foo
 bar
 baz
 EOF
+
+# you can mark known failures as TODO tests
+# where you aspire to fix these and document
+# the intended use case
+TODO IS "$var" == foo
+TODO ISNT "$var" != foo
+TODO IS $((1 + 1)) = 3
+TODO OK -z "$nonempty"
+TODO OK -w /etc/passwd
+TODO RUNS false
