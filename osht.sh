@@ -17,6 +17,8 @@
 : ${_DEPTH=2}
 : ${_TODO=}
 
+: ${_TESTING=}
+
 declare -a _ARGS
 
 function _usage {
@@ -85,7 +87,11 @@ function _strip_terminal_escape {
 }
 
 function _timestamp {
-    date "+%Y-%m-%dT%H:%M:%S"
+    if [ -n "$_TESTING" ]; then
+        echo "2016-01-01T08:00:00"
+    else
+        date "+%Y-%m-%dT%H:%M:%S"
+    fi
 }
 
 function _init_junit {
@@ -101,7 +107,8 @@ function _add_junit {
     fi
     failure=
     if [[ $# != 0 ]]; then
-        failure="<failure message=\"test failed\"><![CDATA[$(_debugmsg | _strip_terminal_escape)]]></failure>\n    "
+        failure="<failure message=\"test failed\"><![CDATA[$(_debugmsg | _strip_terminal_escape)]]></failure>
+    "
     fi
     local stdout=$(cat $STDOUT | _strip_terminal_escape)
     local stderr=$(cat $STDERR | _strip_terminal_escape)
@@ -212,27 +219,39 @@ function _debug {
 }
 
 function _debugmsg {
-    local args=("${_ARGS[@]}")
-    if [[ ${args[0]} == "TODO" ]]; then
-        args=${args[@]:1}
+    local parts=($(caller $_DEPTH))
+    local op=${parts[1]}
+    if [[ ${parts[1]} == "TODO" ]]; then
+        parts=($(caller $(($_DEPTH-1))))
+        op=${parts[1]}
     fi
-    case ${args[0]} in
+    case $op in
         IS)
-            _qq "${args[@]}";;
+            _qq "${_ARGS[@]}";;
         ISNT)
-            _qq \! "${args[@]}";;
+            _qq \! "${_ARGS[@]}";;
         OK)
-            _qq test "${args[@]}";;
+            _qq test "${_ARGS[@]}";;
         NOK)
-            _qq test \! "${args[@]}";;
+            _qq test \! "${_ARGS[@]}";;
         NRUNS|RUNS)
-            echo "RUNNING: $(_qq ${args[@]})"
+            echo "RUNNING: $(_qq "${_ARGS[@]}")"
             echo "STATUS: $STATUS"
             echo "STDIO <<EOM"
             cat $STDIO
             echo "EOM";;
         DIFF|ODIFF|EDIFF)
             cat $_DIFFOUT;;
+        GREP|EGREP|OGREP)
+            echo "RUNNING grep -q $(_qq "${_ARGS[@]}")"
+            echo "STDIO <<EOM"
+            cat $STDIO
+            echo "EOM";;
+        NGREP|NEGREP|NOGREP)
+            echo "RUNNING \! grep -q $(_qq "${_ARGS[@]}")"
+            echo "STDIO <<EOM"
+            cat $STDIO
+            echo "EOM";;
    esac
 }
 
