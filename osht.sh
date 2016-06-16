@@ -243,9 +243,9 @@ function _debugmsg {
         DIFF|ODIFF|EDIFF)
             cat $_DIFFOUT;;
         GREP|EGREP|OGREP)
-            _qq grep -q "${_ARGS[@]}"
+            _qq grep -q "${_ARGS[@]}";;
         NGREP|NEGREP|NOGREP)
-            _qq \! grep -q "${_ARGS[@]}"
+            _qq \! grep -q "${_ARGS[@]}";;
    esac
 }
 
