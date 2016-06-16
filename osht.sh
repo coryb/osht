@@ -243,15 +243,9 @@ function _debugmsg {
         DIFF|ODIFF|EDIFF)
             cat $_DIFFOUT;;
         GREP|EGREP|OGREP)
-            echo "RUNNING grep -q $(_qq "${_ARGS[@]}")"
-            echo "STDIO <<EOM"
-            cat $STDIO
-            echo "EOM";;
+            _qq grep -q "${_ARGS[@]}"
         NGREP|NEGREP|NOGREP)
-            echo "RUNNING \! grep -q $(_qq "${_ARGS[@]}")"
-            echo "STDIO <<EOM"
-            cat $STDIO
-            echo "EOM";;
+            _qq \! grep -q "${_ARGS[@]}"
    esac
 }
 
