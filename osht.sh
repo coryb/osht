@@ -19,7 +19,7 @@
 
 : ${_OSHT_TESTING=}
 
-OSHT_VERSION=1.0.0
+export OSHT_VERSION=1.0.0
 
 declare -a _OSHT_ARGS
 
