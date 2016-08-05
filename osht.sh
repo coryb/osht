@@ -146,7 +146,7 @@ function _osht_increment_test {
 }
 
 function _osht_increment_failed {
-    local _FAILED=$(_failed)
+    local _FAILED=$(_osht_failed)
     let _FAILED=_FAILED+1
     echo $_FAILED > $_OSHT_FAILED_FILE
 }
