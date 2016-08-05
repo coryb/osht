@@ -19,6 +19,8 @@
 
 : ${_OSHT_TESTING=}
 
+OSHT_VERSION=1.0.0
+
 declare -a _OSHT_ARGS
 
 function _osht_usage {
