@@ -4,9 +4,9 @@ set -eu
 
 PLAN 10
 
-JUNIT=1
-_TESTING=1
-_JUNIT=$STDIO
+OSHT_JUNIT=1
+_OSHT_TESTING=1
+_OSHT_JUNIT=$OSHT_STDIO
 
 RUNS echo "hi"
 DIFF <<'EOF'
@@ -18,7 +18,7 @@ hi
 EOF
 
 wrapErr(){
-local _TODO=1
+local _OSHT_TODO=1
 NRUNS echo "hi there"
 }
 wrapErr
@@ -49,7 +49,7 @@ EOM]]></failure>
   </testcase>
 EOF
 
-echo -n > $STDIO
+echo -n > $OSHT_STDIO
 this=a
 that=b
 TODO IS "$this" == "$that"
@@ -61,7 +61,7 @@ DIFF <<'EOF'
   </testcase>
 EOF
 
-echo -n > $STDIO
+echo -n > $OSHT_STDIO
 nonempty="what"
 TODO OK -z "$nonempty"
 DIFF <<'EOF'
