@@ -140,6 +140,16 @@ function _osht_get_line {
     (cd $_OSHT_INITPATH && sed "${parts[0]}q;d" ${parts[2]})
 }
 
+function _osht_source_file {
+    local parts=($(caller $_OSHT_DEPTH))
+    echo "${parts[2]}"
+}
+
+function _osht_source_linenum {
+    local parts=($(caller $_OSHT_DEPTH))
+    echo "${parts[0]}"
+}
+
 function _osht_increment_test {
     _OSHT_CURRENT_TEST=$(cat $_OSHT_CURRENT_TEST_FILE)
     let _OSHT_CURRENT_TEST=_OSHT_CURRENT_TEST+1
@@ -180,6 +190,9 @@ function _osht_ok {
 
 function _osht_nok {
     _osht_stop
+    if [ -z "$_OSHT_TODO" ]; then
+    echo "# ERROR: $(_osht_source_file) at line $(_osht_source_linenum)"
+    fi
     _osht_debug
     echo -n "not ok $_OSHT_CURRENT_TEST - $(_osht_get_line)"
     if [ -n "$_OSHT_TODO" ]; then
