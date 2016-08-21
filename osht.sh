@@ -362,7 +362,7 @@ function NOGREP {
 function DIFF {
     _osht_args $OSHT_DIFF - $OSHT_STDIO
     _osht_increment_test
-    diff -u - $OSHT_STDIO | tee $_OSHT_DIFFOUT | sed 's/^/# /g'
+    $OSHT_DIFF - $OSHT_STDIO | tee $_OSHT_DIFFOUT | sed 's/^/# /g'
     [[ ${PIPESTATUS[0]} == 0 ]] && _osht_ok || _osht_nok
 }
 
