@@ -362,22 +362,34 @@ function NOGREP {
 function DIFF {
     _osht_args $OSHT_DIFF - $OSHT_STDIO
     _osht_increment_test
-    $OSHT_DIFF - $OSHT_STDIO | tee $_OSHT_DIFFOUT | sed 's/^/# /g'
-    [[ ${PIPESTATUS[0]} == 0 ]] && _osht_ok || _osht_nok
+    tmpfile=$(mktemp)
+    cat - > $tmpfile
+    $OSHT_DIFF $tmpfile $OSHT_STDIO | tee $_OSHT_DIFFOUT | sed 's/^/# /g'
+    local status=${PIPESTATUS[0]}
+    rm $tmpfile
+    [[ $status == 0 ]] && _osht_ok || _osht_nok
 }
 
 function ODIFF {
-    _osht_args diff -u - $OSHT_STDOUT
+    _osht_args $OSHT_DIFF - $OSHT_STDOUT
     _osht_increment_test
-    diff -u - $OSHT_STDOUT | tee $_OSHT_DIFFOUT | sed 's/^/# /g'
-    [[ ${PIPESTATUS[0]} == 0 ]] && _osht_ok || _osht_nok
+    tmpfile=$(mktemp)
+    cat - > $tmpfile
+    $OSHT_DIFF $tmpfile $OSHT_STDOUT | tee $_OSHT_DIFFOUT | sed 's/^/# /g'
+    local status=${PIPESTATUS[0]}
+    rm $tmpfile
+    [[ $status == 0 ]] && _osht_ok || _osht_nok
 }
 
 function EDIFF {
-    _osht_args diff -u - $OSHT_STDERR
+    _osht_args $OSHT_DIFF - $OSHT_STDERR
     _osht_increment_test
-    diff -u - $OSHT_STDERR | tee $_OSHT_DIFFOUT | sed 's/^/# /g'
-    [[ ${PIPESTATUS[0]} == 0 ]] && _osht_ok || _osht_nok
+    tmpfile=$(mktemp)
+    cat - > $tmpfile
+    $OSHT_DIFF $tmpfile $OSHT_STDERR | tee $_OSHT_DIFFOUT | sed 's/^/# /g'
+    local status=${PIPESTATUS[0]}
+    rm $tmpfile
+    [[ $status == 0 ]] && _osht_ok || _osht_nok
 }
 
 function TODO {
