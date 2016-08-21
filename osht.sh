@@ -16,6 +16,7 @@
 : ${OSHT_ABORT=}
 : ${_OSHT_DEPTH=2}
 : ${_OSHT_TODO=}
+: ${OSHT_DIFF=diff -u}
 
 : ${_OSHT_TESTING=}
 
@@ -191,7 +192,7 @@ function _osht_ok {
 function _osht_nok {
     _osht_stop
     if [ -z "$_OSHT_TODO" ]; then
-    echo "# ERROR: $(_osht_source_file) at line $(_osht_source_linenum)"
+        echo "# ERROR: $(_osht_source_file) at line $(_osht_source_linenum)"
     fi
     _osht_debug
     echo -n "not ok $_OSHT_CURRENT_TEST - $(_osht_get_line)"
@@ -359,7 +360,7 @@ function NOGREP {
 }
 
 function DIFF {
-    _osht_args diff -u - $OSHT_STDIO
+    _osht_args $OSHT_DIFF - $OSHT_STDIO
     _osht_increment_test
     diff -u - $OSHT_STDIO | tee $_OSHT_DIFFOUT | sed 's/^/# /g'
     [[ ${PIPESTATUS[0]} == 0 ]] && _osht_ok || _osht_nok
