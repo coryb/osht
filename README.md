@@ -115,6 +115,19 @@ TODO OK -w /etc/passwd
 TODO RUNS false
 ```
 
+### SKIP Tests
+
+```
+# you can mark known test cases as SKIP when then
+# are known not to run under some condition
+SKIP test $(uname -s) == Darwin # Tests dont run under Darwin
+
+#### Running Skip Tests
+
+```
+$ ./t/skip.t
+1..0 # SKIP test $(uname -s) == Darwin # Tests dont run under Darwin
+```
 
 ## Running Tests
 

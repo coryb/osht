@@ -31,6 +31,7 @@
 : ${OSHT_ABORT=}
 : ${_OSHT_DEPTH=2}
 : ${_OSHT_TODO=}
+: ${_OSHT_SKIP=}
 : ${OSHT_DIFF=diff -u}
 
 : ${_OSHT_TESTING=}
@@ -285,7 +286,17 @@ function _osht_args {
     _OSHT_ARGS=("$@")
 }
 
+function SKIP {
+    local _OSHT_DEPTH=$(($_OSHT_DEPTH-1))
+    "$@" && _OSHT_SKIP=$(_osht_get_line)
+    _OSHT_PLANNED_TESTS=0
+}
+
 function PLAN {
+    if [ -n "$_OSHT_SKIP" ]; then
+        echo "1..0 # $_OSHT_SKIP"
+        exit 0
+    fi
     echo "1..$1"
     _OSHT_PLANNED_TESTS=$1
 }
