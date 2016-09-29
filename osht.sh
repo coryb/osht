@@ -289,14 +289,14 @@ function _osht_args {
 function SKIP {
     local _OSHT_DEPTH=$(($_OSHT_DEPTH-1))
     "$@" && _OSHT_SKIP=$(_osht_get_line)
-    _OSHT_PLANNED_TESTS=0
-}
-
-function PLAN {
     if [ -n "$_OSHT_SKIP" ]; then
+        _OSHT_PLANNED_TESTS=0
         echo "1..0 # $_OSHT_SKIP"
         exit 0
     fi
+}
+
+function PLAN {
     echo "1..$1"
     _OSHT_PLANNED_TESTS=$1
 }
