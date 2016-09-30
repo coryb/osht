@@ -13,28 +13,29 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 ###############################################################################
-: ${_OSHT_CURRENT_TEST=0}
-: ${_OSHT_PLANNED_TESTS=}
+: ${OSHT_ABORT=}
+: ${OSHT_DIFF=diff -u}
 : ${OSHT_JUNIT=}
-: ${OSHT_VERBOSE=}
-: ${_OSHT_START=}
-: ${_OSHT_LAPSE=}
-: ${_OSHT_CURRENT_TEST_FILE=$(mktemp)}
-: ${_OSHT_FAILED_FILE=$(mktemp)}
+: ${OSHT_JUNIT_OUTPUT="$(cd "$(dirname "$0")"; pwd)/$(basename "$0")-tests.xml"}
 : ${OSHT_STDOUT=$(mktemp)}
 : ${OSHT_STDERR=$(mktemp)}
 : ${OSHT_STDIO=$(mktemp)}
-: ${_OSHT_JUNIT=$(mktemp)}
-: ${_OSHT_DIFFOUT=$(mktemp)}
-: ${_OSHT_INITPATH=$(pwd)}
-: ${OSHT_JUNIT_OUTPUT="$(cd "$(dirname "$0")"; pwd)/$(basename "$0")-tests.xml"}
-: ${OSHT_ABORT=}
-: ${_OSHT_DEPTH=2}
-: ${_OSHT_TODO=}
-: ${_OSHT_SKIP=}
-: ${OSHT_DIFF=diff -u}
+: ${OSHT_VERBOSE=}
+: ${OSHT_WATCH=}
 
+: ${_OSHT_CURRENT_TEST_FILE=$(mktemp)}
+: ${_OSHT_CURRENT_TEST=0}
+: ${_OSHT_DEPTH=2}
+: ${_OSHT_DIFFOUT=$(mktemp)}
+: ${_OSHT_FAILED_FILE=$(mktemp)}
+: ${_OSHT_INITPATH=$(pwd)}
+: ${_OSHT_JUNIT=$(mktemp)}
+: ${_OSHT_LAPSE=}
+: ${_OSHT_PLANNED_TESTS=}
+: ${_OSHT_SKIP=}
+: ${_OSHT_START=}
 : ${_OSHT_TESTING=}
+: ${_OSHT_TODO=}
 
 export OSHT_VERSION=1.0.0
 
@@ -50,6 +51,7 @@ Options:
 -j|--junit         Enable JUnit xml writing
 -o|--output=<file> Location to write JUnit xml file [default: $OSHT_JUNIT_OUTPUT]
 -v|--verbose       Print extra output for debugging tests
+-w|--watch         Print output to stdout to allow watching progress on long-running tests
 EOF
     exit 0
 }
@@ -63,6 +65,7 @@ while true; do
         -j | --junit)  OSHT_JUNIT=1; shift ;;
         -o | --output) OSHT_JUNIT_OUTPUT=$2; shift 2 ;;
         -v | --verbose) OSHT_VERBOSE=1; shift ;;
+        -w | --watch) OSHT_WATCH=1; shift ;;
         -- ) shift; break ;;
         -* ) (_osht_usage "Invalid argument $1") >&2 && exit 1;;
         * ) break ;;
@@ -225,12 +228,26 @@ function _osht_nok {
 }
 
 function _osht_run {
+    # reset STDIO files
     : >$OSHT_STDOUT
     : >$OSHT_STDERR
     : >$OSHT_STDIO
+
+    # local capOut="tee -a -- $OSHT_STDOUT 1>&3 >> $OSHT_STDIO"
+    # local capErr="tee -a -- $OSHT_STDERR 1>&2 >> $OSHT_STDIO"
+    # if [ -n "$OSHT_WATCH" ]; then
+    #     capOut="tee -a -- $OSHT_STDOUT 1>&3 | tee -a -- $OSHT_STDIO | sed 's/^/# /'"
+    #     capErr="tee -a -- $OSHT_STDERR 1>&2 | tee -a -- $OSHT_STDIO | sed 's/^/# /'"
+    # fi
+
     set +e
-    { { "$@" | tee -- $OSHT_STDOUT 1>&3 >> $OSHT_STDIO; exit ${PIPESTATUS[0]}; } 2>&1 \
-             | tee -- $OSHT_STDERR 1>&2 >> $OSHT_STDIO; } 3>&1
+    if [ -n "$OSHT_WATCH" ]; then
+        { { "$@" | tee -a -- $OSHT_STDOUT | tee -a -- $OSHT_STDIO | sed 's/^/# /' 1>&3; exit ${PIPESTATUS[0]}; } 2>&1 \
+                 | tee -a -- $OSHT_STDERR | tee -a -- $OSHT_STDIO | sed 's/^/# /' 1>&2; } 3>&1
+    else
+        { { "$@" | tee -a -- $OSHT_STDOUT 1>&3 >> $OSHT_STDIO; exit ${PIPESTATUS[0]}; } 2>&1 \
+                 | tee -a -- $OSHT_STDERR 1>&2 >> $OSHT_STDIO; } 3>&1
+    fi
     OSHT_STATUS=${PIPESTATUS[0]}
     set -e
 }

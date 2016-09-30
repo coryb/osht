@@ -2,7 +2,7 @@
 set -eu
 . osht.sh
 
-PLAN 38
+PLAN 42
 
 # simple command output
 IS $(whoami) != root
@@ -86,3 +86,33 @@ TODO IS $((1 + 1)) = 3
 TODO OK -z "$nonempty"
 TODO OK -w /etc/passwd
 TODO RUNS false
+
+RUNS bash -c 'for i in $(seq 1 10); do echo $i >&$(($i%2+1)); sleep 1; done'
+DIFF <<EOF
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+EOF
+
+EDIFF <<EOF
+1
+3
+5
+7
+9
+EOF
+
+ODIFF <<EOF
+2
+4
+6
+8
+10
+EOF
