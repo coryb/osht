@@ -233,20 +233,17 @@ function _osht_run {
     : >$OSHT_STDERR
     : >$OSHT_STDIO
 
-    # local capOut="tee -a -- $OSHT_STDOUT 1>&3 >> $OSHT_STDIO"
-    # local capErr="tee -a -- $OSHT_STDERR 1>&2 >> $OSHT_STDIO"
-    # if [ -n "$OSHT_WATCH" ]; then
-    #     capOut="tee -a -- $OSHT_STDOUT 1>&3 | tee -a -- $OSHT_STDIO | sed 's/^/# /'"
-    #     capErr="tee -a -- $OSHT_STDERR 1>&2 | tee -a -- $OSHT_STDIO | sed 's/^/# /'"
-    # fi
-
     set +e
     if [ -n "$OSHT_WATCH" ]; then
-        { { "$@" | tee -a -- $OSHT_STDOUT | tee -a -- $OSHT_STDIO | sed 's/^/# /' 1>&3; exit ${PIPESTATUS[0]}; } 2>&1 \
-                 | tee -a -- $OSHT_STDERR | tee -a -- $OSHT_STDIO | sed 's/^/# /' 1>&2; } 3>&1
+        SEDBUFOPT=-u
+        if [ $(uname -s) == "Darwin" ]; then
+            SEDBUFOPT=-l
+        fi
+        { { "$@" | tee -a -- $OSHT_STDOUT $OSHT_STDIO | sed $SEDBUFOPT 's/^/# /' 1>&3; exit ${PIPESTATUS[0]}; } 2>&1 \
+                 | tee -a -- $OSHT_STDERR $OSHT_STDIO | sed $SEDBUFOPT 's/^/# /' 1>&2; } 3>&1
     else
-        { { "$@" | tee -a -- $OSHT_STDOUT 1>&3 >> $OSHT_STDIO; exit ${PIPESTATUS[0]}; } 2>&1 \
-                 | tee -a -- $OSHT_STDERR 1>&2 >> $OSHT_STDIO; } 3>&1
+        { { "$@" | tee -a -- $OSHT_STDOUT $OSHT_STDIO 1>&3; exit ${PIPESTATUS[0]}; } 2>&1 \
+                 | tee -a -- $OSHT_STDERR $OSHT_STDIO 1>&2; } 3>&1
     fi
     OSHT_STATUS=${PIPESTATUS[0]}
     set -e
