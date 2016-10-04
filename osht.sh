@@ -235,6 +235,16 @@ function _osht_run {
 
     set +e
     (
+        for fd in $(seq 0 255); do
+            case $fd in
+                0)
+                    exec 0<&-;;
+                [12])
+                ;; #noop
+                *)
+                    eval "exec $fd>&-";;
+            esac
+        done
         if [[ -n $OSHT_WATCH ]]; then
             SEDBUFOPT=-u
             if [[ $(uname -s) == Darwin ]]; then
