@@ -234,18 +234,21 @@ function _osht_run {
     : >$OSHT_STDIO
 
     set +e
-    if [ -n "$OSHT_WATCH" ]; then
-        SEDBUFOPT=-u
-        if [ $(uname -s) == "Darwin" ]; then
-            SEDBUFOPT=-l
+    (
+        if [[ -n $OSHT_WATCH ]]; then
+            SEDBUFOPT=-u
+            if [[ $(uname -s) == Darwin ]]; then
+                SEDBUFOPT=-l
+            fi
+            exec 1> >(tee -a -- $OSHT_STDOUT $OSHT_STDIO | sed $SEDBUFOPT 's/^/# /')
+            exec 2> >(tee -a -- $OSHT_STDERR $OSHT_STDIO | sed $SEDBUFOPT 's/^/# /' >&2)
+        else
+            exec 1> >(tee -a -- $OSHT_STDOUT $OSHT_STDIO >/dev/null)
+            exec 2> >(tee -a -- $OSHT_STDERR $OSHT_STDIO >/dev/null)
         fi
-        { { "$@" | tee -a -- $OSHT_STDOUT $OSHT_STDIO | sed $SEDBUFOPT 's/^/# /' 1>&3; exit ${PIPESTATUS[0]}; } 2>&1 \
-                 | tee -a -- $OSHT_STDERR $OSHT_STDIO | sed $SEDBUFOPT 's/^/# /' 1>&2; } 3>&1
-    else
-        { { "$@" | tee -a -- $OSHT_STDOUT $OSHT_STDIO 1>&3; exit ${PIPESTATUS[0]}; } 2>&1 \
-                 | tee -a -- $OSHT_STDERR $OSHT_STDIO 1>&2; } 3>&1
-    fi
-    OSHT_STATUS=${PIPESTATUS[0]}
+        "$@"
+    )
+    OSHT_STATUS=$?
     set -e
 }
 
