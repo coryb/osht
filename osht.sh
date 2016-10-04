@@ -30,6 +30,8 @@
 : ${_OSHT_FAILED_FILE=$(mktemp)}
 : ${_OSHT_INITPATH=$(pwd)}
 : ${_OSHT_JUNIT=$(mktemp)}
+: ${_OSHT_TEE_STDOUT_PID=$(mktemp)}
+: ${_OSHT_TEE_STDERR_PID=$(mktemp)}
 : ${_OSHT_LAPSE=}
 : ${_OSHT_PLANNED_TESTS=}
 : ${_OSHT_SKIP=}
@@ -85,7 +87,7 @@ function _osht_cleanup {
         _osht_end_junit >> $OSHT_JUNIT_OUTPUT
     fi
     local failed=$(_osht_failed)
-    rm -f $OSHT_STDOUT $OSHT_STDERR $OSHT_STDIO $_OSHT_CURRENT_TEST_FILE $_OSHT_JUNIT $_OSHT_FAILED_FILE $_OSHT_DIFFOUT
+    rm -f $OSHT_STDOUT $OSHT_STDERR $OSHT_STDIO $_OSHT_CURRENT_TEST_FILE $_OSHT_JUNIT $_OSHT_FAILED_FILE $_OSHT_DIFFOUT $_OSHT_TEE_STDOUT_PID $_OSHT_TEE_STDERR_PID
     if [[ $_OSHT_PLANNED_TESTS != $_OSHT_CURRENT_TEST ]]; then
         echo "Looks like you planned $_OSHT_PLANNED_TESTS tests but ran $_OSHT_CURRENT_TEST." >&2
         rv=255
@@ -235,30 +237,21 @@ function _osht_run {
 
     set +e
     (
-        for fd in $(seq 0 255); do
-            case $fd in
-                0)
-                    exec 0<&-;;
-                [12])
-                ;; #noop
-                *)
-                    eval "exec $fd>&-";;
-            esac
-        done
         if [[ -n $OSHT_WATCH ]]; then
             SEDBUFOPT=-u
             if [[ $(uname -s) == Darwin ]]; then
                 SEDBUFOPT=-l
             fi
-            exec 1> >(tee -a -- $OSHT_STDOUT $OSHT_STDIO | sed $SEDBUFOPT 's/^/# /')
-            exec 2> >(tee -a -- $OSHT_STDERR $OSHT_STDIO | sed $SEDBUFOPT 's/^/# /' >&2)
+            exec 1> >(echo $! > $_OSHT_TEE_STDOUT_PID && exec tee -a -- $OSHT_STDOUT $OSHT_STDIO | sed $SEDBUFOPT 's/^/# /')
+            exec 2> >(echo $! > $_OSHT_TEE_STDERR_PID && exec tee -a -- $OSHT_STDERR $OSHT_STDIO | sed $SEDBUFOPT 's/^/# /' >&2)
         else
-            exec 1> >(tee -a -- $OSHT_STDOUT $OSHT_STDIO >/dev/null)
-            exec 2> >(tee -a -- $OSHT_STDERR $OSHT_STDIO >/dev/null)
+            exec 1> >(echo $! > $_OSHT_TEE_STDOUT_PID && exec tee -a -- $OSHT_STDOUT $OSHT_STDIO >/dev/null)
+            exec 2> >(echo $! > $_OSHT_TEE_STDERR_PID && exec tee -a -- $OSHT_STDERR $OSHT_STDIO >/dev/null)
         fi
         "$@"
     )
     OSHT_STATUS=$?
+    kill $(cat $_OSHT_TEE_STDOUT_PID $_OSHT_TEE_STDERR_PID) >/dev/null 2>&1
     set -e
 }
 
