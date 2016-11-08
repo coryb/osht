@@ -13,25 +13,26 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 ###############################################################################
+: ${OSHT_MKTEMP=mktemp -t osht.XXXXXX}
 : ${OSHT_ABORT=}
 : ${OSHT_DIFF=diff -u}
 : ${OSHT_JUNIT=}
 : ${OSHT_JUNIT_OUTPUT="$(cd "$(dirname "$0")"; pwd)/$(basename "$0")-tests.xml"}
-: ${OSHT_STDOUT=$(mktemp)}
-: ${OSHT_STDERR=$(mktemp)}
-: ${OSHT_STDIO=$(mktemp)}
+: ${OSHT_STDOUT=$($OSHT_MKTEMP)}
+: ${OSHT_STDERR=$($OSHT_MKTEMP)}
+: ${OSHT_STDIO=$($OSHT_MKTEMP)}
 : ${OSHT_VERBOSE=}
 : ${OSHT_WATCH=}
 
-: ${_OSHT_CURRENT_TEST_FILE=$(mktemp)}
+: ${_OSHT_CURRENT_TEST_FILE=$($OSHT_MKTEMP)}
 : ${_OSHT_CURRENT_TEST=0}
 : ${_OSHT_DEPTH=2}
-: ${_OSHT_DIFFOUT=$(mktemp)}
-: ${_OSHT_FAILED_FILE=$(mktemp)}
+: ${_OSHT_DIFFOUT=$($OSHT_MKTEMP)}
+: ${_OSHT_FAILED_FILE=$($OSHT_MKTEMP)}
 : ${_OSHT_INITPATH=$(pwd)}
-: ${_OSHT_JUNIT=$(mktemp)}
-: ${_OSHT_TEE_STDOUT_PID=$(mktemp)}
-: ${_OSHT_TEE_STDERR_PID=$(mktemp)}
+: ${_OSHT_JUNIT=$($OSHT_MKTEMP)}
+: ${_OSHT_TEE_STDOUT_PID=$($OSHT_MKTEMP)}
+: ${_OSHT_TEE_STDERR_PID=$($OSHT_MKTEMP)}
 : ${_OSHT_LAPSE=}
 : ${_OSHT_PLANNED_TESTS=}
 : ${_OSHT_SKIP=}
@@ -408,7 +409,7 @@ function NOGREP {
 function DIFF {
     _osht_args $OSHT_DIFF - $OSHT_STDIO
     _osht_increment_test
-    tmpfile=$(mktemp)
+    tmpfile=$($OSHT_MKTEMP)
     cat - > $tmpfile
     $OSHT_DIFF $tmpfile $OSHT_STDIO | tee $_OSHT_DIFFOUT | sed 's/^/# /g'
     local status=${PIPESTATUS[0]}
@@ -419,7 +420,7 @@ function DIFF {
 function ODIFF {
     _osht_args $OSHT_DIFF - $OSHT_STDOUT
     _osht_increment_test
-    tmpfile=$(mktemp)
+    tmpfile=$($OSHT_MKTEMP)
     cat - > $tmpfile
     $OSHT_DIFF $tmpfile $OSHT_STDOUT | tee $_OSHT_DIFFOUT | sed 's/^/# /g'
     local status=${PIPESTATUS[0]}
@@ -430,7 +431,7 @@ function ODIFF {
 function EDIFF {
     _osht_args $OSHT_DIFF - $OSHT_STDERR
     _osht_increment_test
-    tmpfile=$(mktemp)
+    tmpfile=$($OSHT_MKTEMP)
     cat - > $tmpfile
     $OSHT_DIFF $tmpfile $OSHT_STDERR | tee $_OSHT_DIFFOUT | sed 's/^/# /g'
     local status=${PIPESTATUS[0]}
