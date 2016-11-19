@@ -31,8 +31,6 @@
 : ${_OSHT_FAILED_FILE=$($OSHT_MKTEMP)}
 : ${_OSHT_INITPATH=$(pwd)}
 : ${_OSHT_JUNIT=$($OSHT_MKTEMP)}
-: ${_OSHT_TEE_STDOUT_PID=$($OSHT_MKTEMP)}
-: ${_OSHT_TEE_STDERR_PID=$($OSHT_MKTEMP)}
 : ${_OSHT_LAPSE=}
 : ${_OSHT_PLANNED_TESTS=}
 : ${_OSHT_SKIP=}
@@ -88,7 +86,7 @@ function _osht_cleanup {
         _osht_end_junit >> $OSHT_JUNIT_OUTPUT
     fi
     local failed=$(_osht_failed)
-    rm -f $OSHT_STDOUT $OSHT_STDERR $OSHT_STDIO $_OSHT_CURRENT_TEST_FILE $_OSHT_JUNIT $_OSHT_FAILED_FILE $_OSHT_DIFFOUT $_OSHT_TEE_STDOUT_PID $_OSHT_TEE_STDERR_PID
+    rm -f $OSHT_STDOUT $OSHT_STDERR $OSHT_STDIO $_OSHT_CURRENT_TEST_FILE $_OSHT_JUNIT $_OSHT_FAILED_FILE $_OSHT_DIFFOUT
     if [[ $_OSHT_PLANNED_TESTS != $_OSHT_CURRENT_TEST ]]; then
         echo "Looks like you planned $_OSHT_PLANNED_TESTS tests but ran $_OSHT_CURRENT_TEST." >&2
         rv=255
@@ -243,16 +241,23 @@ function _osht_run {
             if [[ $(uname -s) == Darwin ]]; then
                 SEDBUFOPT=-l
             fi
-            exec 1> >(echo $! > $_OSHT_TEE_STDOUT_PID && exec tee -a -- $OSHT_STDOUT $OSHT_STDIO | sed $SEDBUFOPT 's/^/# /')
-            exec 2> >(echo $! > $_OSHT_TEE_STDERR_PID && exec tee -a -- $OSHT_STDERR $OSHT_STDIO | sed $SEDBUFOPT 's/^/# /' >&2)
+            exec 1> >(tee -a -- $OSHT_STDOUT $OSHT_STDIO | sed $SEDBUFOPT 's/^/# /')
+            exec 2> >(tee -a -- $OSHT_STDERR $OSHT_STDIO | sed $SEDBUFOPT 's/^/# /' >&2)
         else
-            exec 1> >(echo $! > $_OSHT_TEE_STDOUT_PID && exec tee -a -- $OSHT_STDOUT $OSHT_STDIO >/dev/null)
-            exec 2> >(echo $! > $_OSHT_TEE_STDERR_PID && exec tee -a -- $OSHT_STDERR $OSHT_STDIO >/dev/null)
+            exec 1> >(tee -a -- $OSHT_STDOUT $OSHT_STDIO >/dev/null)
+            exec 2> >(tee -a -- $OSHT_STDERR $OSHT_STDIO >/dev/null)
         fi
         "$@"
     )
     OSHT_STATUS=$?
-    kill $(cat $_OSHT_TEE_STDOUT_PID $_OSHT_TEE_STDERR_PID) >/dev/null 2>&1
+    if [[ ${BASH_VERSINFO[0]} > 3 ]]; then
+        THISPID=$BASHPID
+    else
+        THISPID=$!
+    fi
+    PGRP=$(ps -p $THISPID --no-header -o pgrp)
+    PIDS=$(ps --no-headers -o pgrp,pid | awk "\$1 == $PGRP && \$2 != $PGRP {print \$2}")
+    kill $PIDS >/dev/null 2>&1
     set -e
 }
 
@@ -281,13 +286,13 @@ function _osht_debugmsg {
     fi
     case $op in
         IS)
-            _osht_qq "${_OSHT_ARGS[@]}";;
+            _osht_qq "${_OSHT_ARGS[@]}"; echo;;
         ISNT)
-            _osht_qq \! "${_OSHT_ARGS[@]}";;
+            _osht_qq \! "${_OSHT_ARGS[@]}"; echo;;
         OK)
-            _osht_qq test "${_OSHT_ARGS[@]}";;
+            _osht_qq test "${_OSHT_ARGS[@]}"; echo;;
         NOK)
-            _osht_qq test \! "${_OSHT_ARGS[@]}";;
+            _osht_qq test \! "${_OSHT_ARGS[@]}"; echo;;
         NRUNS|RUNS)
             echo "RUNNING: $(_osht_qq "${_OSHT_ARGS[@]}")"
             echo "STATUS: $OSHT_STATUS"
@@ -297,9 +302,9 @@ function _osht_debugmsg {
         DIFF|ODIFF|EDIFF)
             cat $_OSHT_DIFFOUT;;
         GREP|EGREP|OGREP)
-            _osht_qq grep -q "${_OSHT_ARGS[@]}";;
+            _osht_qq grep -q "${_OSHT_ARGS[@]}"; echo;;
         NGREP|NEGREP|NOGREP)
-            _osht_qq \! grep -q "${_OSHT_ARGS[@]}";;
+            _osht_qq \! grep -q "${_OSHT_ARGS[@]}"; echo;;
    esac
 }
 
