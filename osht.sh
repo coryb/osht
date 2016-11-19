@@ -253,10 +253,16 @@ function _osht_run {
     if [[ ${BASH_VERSINFO[0]} > 3 ]]; then
         THISPID=$BASHPID
     else
-        THISPID=$!
+        THISPID=$$
     fi
-    PGRP=$(ps -p $THISPID --no-header -o pgrp)
-    PIDS=$(ps --no-headers -o pgrp,pid | awk "\$1 == $PGRP && \$2 != $PGRP {print \$2}")
+
+    if [[ $(uname -s) == Darwin ]]; then
+        PGRP=$(ps -p $THISPID -o pgid=)
+        PIDS=$(ps -o pgid=,ppid=,pid=,comm= | awk "\$1 == $PGRP && \$2 != $PGRP && \$3 != $PGRP && \$4 ~ /tee|sed/ {print \$2\" \"\$3}")
+    else
+        PGRP=$(ps -p $THISPID --no-header -o pgrp)
+        PIDS=$(ps --no-headers -o pgrp,ppid,pid,cmd | awk "\$1 == $PGRP && \$2 != $PGRP && \$3 != $PGRP && \$4 ~ /tee|sed/ {print \$2\" \"\$3}")
+    fi
     kill $PIDS >/dev/null 2>&1
     set -e
 }
