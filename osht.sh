@@ -254,7 +254,9 @@ function cleanup {
     else
         PIDS=\$(ps --no-headers -o pgrp,ppid,pid,cmd | awk "\\\$1 == \$PGRP && \\\$4 == \"tee\" {print \\\$2\" \"\\\$3}")
     fi
-    kill \$PIDS
+    if [[ -n "\$PIDS" ]]; then
+        kill \$PIDS
+    fi
     return \$rv
 }
 trap cleanup INT TERM EXIT
