@@ -27,6 +27,7 @@
 : ${_OSHT_CURRENT_TEST_FILE=$($OSHT_MKTEMP)}
 : ${_OSHT_CURRENT_TEST=0}
 : ${_OSHT_DEPTH=2}
+: ${_OSHT_RUNNER=$($OSHT_MKTEMP)}
 : ${_OSHT_DIFFOUT=$($OSHT_MKTEMP)}
 : ${_OSHT_FAILED_FILE=$($OSHT_MKTEMP)}
 : ${_OSHT_INITPATH=$(pwd)}
@@ -86,7 +87,7 @@ function _osht_cleanup {
         _osht_end_junit >> $OSHT_JUNIT_OUTPUT
     fi
     local failed=$(_osht_failed)
-    rm -f $OSHT_STDOUT $OSHT_STDERR $OSHT_STDIO $_OSHT_CURRENT_TEST_FILE $_OSHT_JUNIT $_OSHT_FAILED_FILE $_OSHT_DIFFOUT
+    rm -f $OSHT_STDOUT $OSHT_STDERR $OSHT_STDIO $_OSHT_CURRENT_TEST_FILE $_OSHT_JUNIT $_OSHT_FAILED_FILE $_OSHT_DIFFOUT $_OSHT_RUNNER
     if [[ $_OSHT_PLANNED_TESTS != $_OSHT_CURRENT_TEST ]]; then
         echo "Looks like you planned $_OSHT_PLANNED_TESTS tests but ran $_OSHT_CURRENT_TEST." >&2
         rv=255
@@ -234,36 +235,45 @@ function _osht_run {
     : >$OSHT_STDERR
     : >$OSHT_STDIO
 
-    set +e
-    (
-        if [[ -n $OSHT_WATCH ]]; then
-            SEDBUFOPT=-u
-            if [[ $(uname -s) == Darwin ]]; then
-                SEDBUFOPT=-l
-            fi
-            exec 1> >(tee -a -- $OSHT_STDOUT $OSHT_STDIO | sed $SEDBUFOPT 's/^/# /')
-            exec 2> >(tee -a -- $OSHT_STDERR $OSHT_STDIO | sed $SEDBUFOPT 's/^/# /' >&2)
-        else
-            exec 1> >(tee -a -- $OSHT_STDOUT $OSHT_STDIO >/dev/null)
-            exec 2> >(tee -a -- $OSHT_STDERR $OSHT_STDIO >/dev/null)
-        fi
-        "$@"
-    )
-    OSHT_STATUS=$?
-    if [[ ${BASH_VERSINFO[0]} > 3 ]]; then
-        THISPID=$BASHPID
+    cat <<EOF > $_OSHT_RUNNER
+#!/bin/bash
+set -o monitor
+exec 1> >(tee -a -- $OSHT_STDOUT $OSHT_STDIO)
+exec 2> >(tee -a -- $OSHT_STDERR $OSHT_STDIO >&2)
+function cleanup {
+    rv=\$?
+    platform=\$(uname -s)
+    if [[ \$platform == Darwin ]]; then
+        PGRP=\$(ps -p \$\$ -o pgid=)
     else
-        THISPID=$$
+        PGRP=\$(ps -p \$\$ --no-header -o pgrp)
     fi
 
-    if [[ $(uname -s) == Darwin ]]; then
-        PGRP=$(ps -p $THISPID -o pgid=)
-        PIDS=$(ps -o pgid=,ppid=,pid=,comm= | awk "\$1 == $PGRP && \$2 != $PGRP && \$3 != $PGRP && \$4 ~ /tee|sed/ {print \$2\" \"\$3}")
+    if [[ \$platform == Darwin ]]; then
+        PIDS=\$(ps -o pgid=,ppid=,pid=,comm= | awk "\\\$1 == \$PGRP && \\\$4 == \"tee\" {print \\\$2\" \"\\\$3}")
     else
-        PGRP=$(ps -p $THISPID --no-header -o pgrp)
-        PIDS=$(ps --no-headers -o pgrp,ppid,pid,cmd | awk "\$1 == $PGRP && \$2 != $PGRP && \$3 != $PGRP && \$4 ~ /tee|sed/ {print \$2\" \"\$3}")
+        PIDS=\$(ps --no-headers -o pgrp,ppid,pid,cmd | awk "\\\$1 == \$PGRP && \\\$4 == \"tee\" {print \\\$2\" \"\\\$3}")
     fi
-    kill $PIDS >/dev/null 2>&1
+    kill \$PIDS
+    return \$rv
+}
+trap cleanup INT TERM EXIT
+"\$@"
+EOF
+    chmod 755 $_OSHT_RUNNER
+
+    set +e
+    if [[ -n "$OSHT_WATCH" ]]; then
+        SEDBUFOPT=-u
+        if [ $(uname -s) == "Darwin" ]; then
+            SEDBUFOPT=-l
+        fi
+        $_OSHT_RUNNER "$@" 2>&1 | sed $SEDBUFOPT 's/^/# /'
+        OSHT_STATUS=${PIPESTATUS[0]}
+    else
+        $_OSHT_RUNNER "$@" >/dev/null 2>&1
+        OSHT_STATUS=$?
+    fi
     set -e
 }
 
