@@ -255,7 +255,7 @@ function cleanup {
         PIDS=\$(ps --no-headers -o pgrp,ppid,pid,cmd | awk "\\\$1 == \$PGRP && \\\$4 == \"tee\" {print \\\$2\" \"\\\$3}")
     fi
     if [[ -n "\$PIDS" ]]; then
-        kill \$PIDS
+        kill \$PIDS >/dev/null 2>&1
     fi
     return \$rv
 }
