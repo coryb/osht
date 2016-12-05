@@ -107,7 +107,7 @@ function _osht_xmlencode {
 }
 
 function _osht_strip_terminal_escape {
-    sed -e $'s/\x1B\[[0-9]*;[0-9]*[m|K]//g' -e $'s/\x1B\[[0-9]*[m|K]//g'
+    sed -e $'s/\x1B\[[0-9]*;[0-9]*[m|K|G|A]//g' -e $'s/\x1B\[[0-9]*[m|K|G|A]//g'
 }
 
 function _osht_timestamp {
