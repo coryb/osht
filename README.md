@@ -199,10 +199,10 @@ t/example.t-tests.xml: XML  document text
 ```
 
 ### Junit with prove
-just set the `JUNIT` environment variable and `osht` will generate junit xml files along with normal TAP output
+just set the `OSHT_JUNIT` environment variable and `osht` will generate junit xml files along with normal TAP output
 when run under `prove`
 ```bash
-$ JUNIT=1 prove
+$ OSHT_JUNIT=1 prove
 t/example.t .. ok
 All tests successful.
 Files=1, Tests=38,  1 wallclock secs ( 0.03 usr  0.01 sys +  0.37 cusr  0.87 csys =  1.28 CPU)
