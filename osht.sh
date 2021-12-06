@@ -116,7 +116,7 @@ else
 fi
 
 function _osht_xmlencode {
-    sed -e 's/\&/\&amp;/g' -e 's/\"/\&quot;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e "s/'/\&apos;/g"
+    sed -e 's/\&/\&amp;/g' -e 's/\"/\&quot;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e "s/'//g" # -e "s/'/\&apos;/g"
 }
 
 function _osht_strip_terminal_escape {
