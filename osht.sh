@@ -121,7 +121,8 @@ function _osht_timestamp {
 function _osht_init_junit {
     cat <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites failures="$(_osht_failed)" name="$0" tests="$_OSHT_PLANNED_TESTS" time="$SECONDS" timestamp="$(_osht_timestamp)" >
+<testsuites>
+<testsuite failures="$(_osht_failed)" name="$0" tests="$_OSHT_PLANNED_TESTS" time="$SECONDS" timestamp="$(_osht_timestamp)" >
 EOF
 }
 
@@ -147,6 +148,7 @@ EOF
 
 function _osht_end_junit {
     cat <<EOF
+</testsuite>
 </testsuites>
 EOF
 }
