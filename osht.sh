@@ -77,6 +77,8 @@ done
 
 function _osht_cleanup {
     local rv=$?
+    #  make sure we get latest value (possibly updated in sub-shell)
+    _osht_get_test_count
     if [ -z "$_OSHT_PLANNED_TESTS" ]; then
         _OSHT_PLANNED_TESTS=$_OSHT_CURRENT_TEST
         echo "1..$_OSHT_PLANNED_TESTS"
@@ -170,6 +172,10 @@ function _osht_source_file {
 function _osht_source_linenum {
     local parts=($(caller $_OSHT_DEPTH))
     echo "${parts[0]}"
+}
+
+function _osht_get_test_count {
+    _OSHT_CURRENT_TEST=$(cat $_OSHT_CURRENT_TEST_FILE)
 }
 
 function _osht_increment_test {
